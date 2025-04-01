@@ -72,7 +72,7 @@ const ImageCropper = ({image, onCropComplete, isOpen, setIsOpen, mode}: ImageCro
                             image={processedImage || image}
                             crop={crop}
                             zoom={zoom}
-                            aspect={mode === 'products' ? 0.8 : 1.6}
+                            aspect={mode === 'products' ? 1.125 : 1.6}
                             onCropChange={setCrop}
                             onCropComplete={handleCropComplete}
                             onZoomChange={setZoom}

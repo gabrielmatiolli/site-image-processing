@@ -17,23 +17,38 @@ import {
 } from "@/components/ui/alert-dialog";
 import logo from '@/assets/logo.svg';
 import {ChangeMode} from "@/components/change-mode";
+import compressImage from "@/utils/compress-image";
 
 export default function Home() {
     const [mode, setMode] = useState<'products' | 'content'>('products');
     const {form, onSubmit, imageUrl, openDialog, setOpenDialog} = useFileForm({mode});
-    const [fileName, setFileName] = useState("imagem-processada.png");
+    const [fileName, setFileName] = useState("imagem.webp");
     const [imageSrc, setImageSrc] = useState<string | ArrayBuffer | null>(null);
     const [cropperOpen, setCropperOpen] = useState(false);
 
-    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        if (file) {
-            setCropperOpen(true);
-            const reader = new FileReader();
-            reader.onload = () => setImageSrc(reader.result);
-            reader.readAsDataURL(file);
+        if (!file) return;
+
+        const MAX_FILE_SIZE = 4.5 * 1024 * 1024; // 4.5MB
+
+        const maxWidth = mode === 'content' ? 1600 : 2400;
+        const maxHeight = mode === 'content' ? 1800 : 1500;
+
+        if (file.size > MAX_FILE_SIZE) {
+            // Redimensionar e comprimir imagem antes de enviar.
+            const compressedFile = await compressImage(file, maxWidth, maxHeight, 0.8);
+            form.setValue('file', compressedFile);
+        } else {
+            form.setValue('file', file);
         }
+
+        setCropperOpen(true);
+        const reader = new FileReader();
+        reader.onload = () => setImageSrc(reader.result);
+        reader.readAsDataURL(file);
     };
+
 
     const handleCropComplete = (croppedImage: File | null) => {
         if (croppedImage) {
