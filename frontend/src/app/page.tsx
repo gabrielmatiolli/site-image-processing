@@ -1,6 +1,6 @@
 "use client"
 
-import {ChangeEvent, useState} from "react";
+import React, {ChangeEvent, useEffect, useRef, useState} from "react";
 import useFileForm from "@/hooks/use-form";
 import ImageCropper from "@/components/image-cropper";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
@@ -26,18 +26,40 @@ export default function Home() {
     const [imageSrc, setImageSrc] = useState<string | ArrayBuffer | null>(null);
     const [cropperOpen, setCropperOpen] = useState(false);
 
+    const inputRef = useRef<HTMLInputElement | null>(null);
+
+    useEffect(() => {
+        if (openDialog) {
+            requestAnimationFrame(() => {
+                if (inputRef.current) {
+                    inputRef.current.focus();
+                }
+            });
+        }
+    }, [openDialog]);
+
+
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === "Enter" && imageUrl) {
+            event.preventDefault();
+            const link = document.createElement("a");
+            link.href = imageUrl;
+            link.download = fileName;
+            link.click();
+        }
+    };
+
     const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
         const MAX_FILE_SIZE = 4.5 * 1024 * 1024; // 4.5MB
 
-        const maxWidth = mode === 'content' ? 1600 : 2400;
-        const maxHeight = mode === 'content' ? 1800 : 1500;
-
+        const maxWidth = mode === 'content' ? 800 : 1200;
+        const maxHeight = mode === 'content' ? 900 : 750;
+        console.log(file.size)
         if (file.size > MAX_FILE_SIZE) {
-            // Redimensionar e comprimir imagem antes de enviar.
-            const compressedFile = await compressImage(file, maxWidth, maxHeight, 0.8);
+            const compressedFile = await compressImage(file, maxWidth, maxHeight, 0.3);
             form.setValue('file', compressedFile);
         } else {
             form.setValue('file', file);
@@ -49,15 +71,13 @@ export default function Home() {
         reader.readAsDataURL(file);
     };
 
-
     const handleCropComplete = (croppedImage: File | null) => {
         if (croppedImage) {
-            form.setValue('file', croppedImage); // Attach cropped file to form
-            setImageSrc(null); // Close the cropping modal
-            onSubmit(form.getValues()); // Submit the form
+            form.setValue('file', croppedImage);
+            setImageSrc(null);
+            onSubmit(form.getValues());
         }
     };
-
 
     return (
         <>
@@ -91,7 +111,6 @@ export default function Home() {
                 </Form>
             </div>
 
-
             <AlertDialog open={openDialog} onOpenChange={setOpenDialog}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -106,9 +125,11 @@ export default function Home() {
                         {imageUrl && (
                             <>
                                 <input
+                                    ref={inputRef}
                                     type="text"
                                     value={fileName}
                                     onChange={(e) => setFileName(e.target.value)}
+                                    onKeyDown={handleKeyDown}
                                     className="w-full mb-2 px-2 py-1 border rounded-md"
                                     placeholder="Digite o nome do arquivo"
                                 />
