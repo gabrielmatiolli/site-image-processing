@@ -1,10 +1,14 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { formSchema, FormType } from "@/validators/form-validator";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {useForm} from "react-hook-form";
+import {formSchema, FormType} from "@/validators/form-validator";
 import axios from "axios";
-import { useState } from "react";
+import {useState} from "react";
 
-export default function useFileForm() {
+interface UseFileFormProps {
+    mode: 'products' | 'content';
+}
+
+export default function useFileForm({mode}: UseFileFormProps) {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [openDialog, setOpenDialog] = useState(false); // Estado para abrir o Dialog
 
@@ -19,7 +23,7 @@ export default function useFileForm() {
         const formData = new FormData();
         formData.append('file', values.file);
 
-        axios.post('/api/process-image', formData, {
+        axios.post('/api/process-image/' + mode, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
@@ -31,5 +35,5 @@ export default function useFileForm() {
             .catch(error => console.error('Erro no upload:', error));
     }
 
-    return { form, onSubmit, imageUrl, openDialog, setOpenDialog };
+    return {form, onSubmit, imageUrl, openDialog, setOpenDialog};
 }

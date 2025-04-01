@@ -24,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body
-        className={`${signikaNegative.variable} antialiased w-full h-screen flex items-center overflow-hidden justify-center flex-col gap-6 relative`}
+        className={`${signikaNegative.variable} antialiased w-full h-screen flex items-center overflow-hidden justify-center flex-col gap-6 relative font-signika`}
       >
 
       <Image src={ringBlue} alt={"Ring"} className={'w-96 h-auto absolute -top-1/5 -left-1/12'} />

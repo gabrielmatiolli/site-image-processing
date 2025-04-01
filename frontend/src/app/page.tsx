@@ -1,86 +1,81 @@
 "use client"
 
+import {ChangeEvent, useState} from "react";
 import useFileForm from "@/hooks/use-form";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import ImageCropper from "@/components/image-cropper";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
+import {Input} from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
 import Image from "next/image";
 import {
-    AlertDialog, AlertDialogCancel,
+    AlertDialog,
+    AlertDialogCancel,
     AlertDialogContent,
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import logo from '@/assets/logo.svg';
-import { ChangeEvent, KeyboardEvent, RefObject, useEffect, useRef, useState } from "react";
+import {ChangeMode} from "@/components/change-mode";
 
 export default function Home() {
-    const { form, onSubmit, imageUrl, openDialog, setOpenDialog } = useFileForm();
+    const [mode, setMode] = useState<'products' | 'content'>('products');
+    const {form, onSubmit, imageUrl, openDialog, setOpenDialog} = useFileForm({mode});
     const [fileName, setFileName] = useState("imagem-processada.png");
+    const [imageSrc, setImageSrc] = useState<string | ArrayBuffer | null>(null);
+    const [cropperOpen, setCropperOpen] = useState(false);
 
-    // Função para permitir ao usuário escolher o nome do arquivo.
-    const handleFileNameChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setFileName(event.target.value);
-    };
-
-    const fileNameInputRef: RefObject<HTMLInputElement | null> = useRef(null);
-
-    // Foca no input quando o modal é aberto, com um pequeno delay.
-    useEffect(() => {
-        if (openDialog) {
-            setTimeout(() => {
-                if (fileNameInputRef.current) {
-                    fileNameInputRef.current.focus();
-                }
-            }, 100); // Ajuste o delay conforme necessário
-        }
-    }, [openDialog]);
-
-    // Função para lidar com o evento de pressionar a tecla Enter
-    const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
-        if (event.key === "Enter") {
-            // Baixar a imagem ao pressionar "Enter"
-            const downloadLink = document.createElement("a");
-            downloadLink.href = imageUrl || "";
-            downloadLink.download = fileName; // Define o nome do arquivo
-            downloadLink.click();
+    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            setCropperOpen(true);
+            const reader = new FileReader();
+            reader.onload = () => setImageSrc(reader.result);
+            reader.readAsDataURL(file);
         }
     };
+
+    const handleCropComplete = (croppedImage: File | null) => {
+        if (croppedImage) {
+            form.setValue('file', croppedImage); // Attach cropped file to form
+            setImageSrc(null); // Close the cropping modal
+            onSubmit(form.getValues()); // Submit the form
+        }
+    };
+
 
     return (
         <>
-            <Image src={logo} alt="Logo" width={200} height={200} />
-            <div className="w-1/5 h-fit p-4 rounded-md shadow-sm bg-white flex flex-col items-center justify-center gap-6 font-signika">
+            <Image src={logo} alt="Logo" width={200} height={200}/>
+            <div
+                className="w-1/5 h-fit p-4 rounded-md shadow-sm bg-white flex flex-col items-center justify-center gap-6">
                 <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-center">
                     Padronizador de imagens
                 </h1>
+                <ChangeMode mode={mode} changeMode={setMode}/>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col items-center justify-center w-full gap-4">
+                    <form className="flex flex-col items-center justify-center w-full gap-4"
+                          onSubmit={form.handleSubmit(onSubmit)}>
                         <FormField
                             control={form.control}
                             name="file"
-                            render={({ field }) => (
+                            render={() => (
                                 <FormItem className="w-full">
                                     <FormLabel>Imagem</FormLabel>
                                     <FormControl>
-                                        <Input
-                                            type="file"
-                                            accept=".jpg,.png,.jpeg,.svg"
-                                            multiple={false}
-                                            onChange={(event) => {
-                                                field.onChange(event.target.files?.[0]);
-                                            }}
-                                        />
+                                        <Input type="file" accept=".jpg,.png,.jpeg,.svg" multiple={false}
+                                               onChange={handleFileChange}/>
                                     </FormControl>
-                                    <FormMessage />
+                                    <FormMessage/>
                                 </FormItem>
                             )}
                         />
-                        <Button className="w-full cursor-pointer" type="submit">Enviar</Button>
+                        <ImageCropper image={imageSrc as string} onCropComplete={handleCropComplete}
+                                      isOpen={cropperOpen} setIsOpen={setCropperOpen} mode={mode}/>
                     </form>
                 </Form>
             </div>
+
 
             <AlertDialog open={openDialog} onOpenChange={setOpenDialog}>
                 <AlertDialogContent>
@@ -88,7 +83,8 @@ export default function Home() {
                         <AlertDialogTitle>Imagem processada</AlertDialogTitle>
                     </AlertDialogHeader>
                     {imageUrl && (
-                        <Image src={imageUrl} alt="Imagem processada" width={800} height={500} className="rounded-md shadow-md" />
+                        <Image src={imageUrl} alt="Imagem processada" width={800} height={500}
+                               className="rounded-md shadow-md"/>
                     )}
                     <AlertDialogFooter>
                         <AlertDialogCancel>Fechar</AlertDialogCancel>
@@ -97,9 +93,7 @@ export default function Home() {
                                 <input
                                     type="text"
                                     value={fileName}
-                                    onChange={handleFileNameChange}
-                                    onKeyDown={handleKeyDown} // Adiciona o evento para capturar "Enter"
-                                    ref={fileNameInputRef} // Foca no input automaticamente
+                                    onChange={(e) => setFileName(e.target.value)}
                                     className="w-full mb-2 px-2 py-1 border rounded-md"
                                     placeholder="Digite o nome do arquivo"
                                 />
