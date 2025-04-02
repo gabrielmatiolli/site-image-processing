@@ -86,6 +86,8 @@ export default function Home() {
         }
     };
 
+    console.log("URL da imagem:", imageUrl);
+
     return (
         <>
             <Image src={logo} alt="Logo" width={200} height={200}/>
