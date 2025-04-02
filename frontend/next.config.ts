@@ -6,12 +6,6 @@ const nextConfig: NextConfig = {
         serverActions: {
             bodySizeLimit: '8mb',
         }
-    },
-    api: {
-        responseLimit: '8mb',
-        bodyParser: {
-            sizeLimit: '8mb',
-        }
     }
 };
 

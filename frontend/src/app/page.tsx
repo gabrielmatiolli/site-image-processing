@@ -55,21 +55,28 @@ export default function Home() {
 
         const MAX_FILE_SIZE = 4.5 * 1024 * 1024; // 4.5MB
 
-        const maxWidth = mode === 'content' ? 800 : 1200;
-        const maxHeight = mode === 'content' ? 900 : 750;
-        console.log(file.size)
+        const maxWidth = mode === 'content' ? 2400 : 2400;
+        const maxHeight = mode === 'content' ? 2700 : 1500;
+
+        let processedFile = file; // Inicialmente, o arquivo original
+
+        console.log("Tamanho do arquivo original:", file.size);
+
         if (file.size > MAX_FILE_SIZE) {
-            const compressedFile = await compressImage(file, maxWidth, maxHeight, 0.3);
-            form.setValue('file', compressedFile);
-        } else {
-            form.setValue('file', file);
+            processedFile = await compressImage(file, maxWidth, maxHeight, 1);
+            console.log("Tamanho do arquivo comprimido:", processedFile.size);
         }
 
+        form.setValue('file', processedFile);
+
         setCropperOpen(true);
+
+        // Atualiza a visualização da imagem.
         const reader = new FileReader();
         reader.onload = () => setImageSrc(reader.result);
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(processedFile);
     };
+
 
     const handleCropComplete = (croppedImage: File | null) => {
         if (croppedImage) {
