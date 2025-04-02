@@ -28,12 +28,12 @@ export async function POST(req: NextRequest) {
         // Redimensiona a imagem para 1200x750
         const resizedImage = image.resize(TARGET_SIZE.width, TARGET_SIZE.height);
 
-        // Carrega as imagens de sobreposição
+        // Carrega as imagens de sobreposição.
         const topLeft = await sharp(PNG_TOP_LEFT).ensureAlpha().toBuffer();
         const bottomRight = await sharp(PNG_BOTTOM_RIGHT).ensureAlpha().toBuffer();
         const logo = await sharp(LOGO_PATH).resize({ height: 50 }).ensureAlpha().toBuffer();
 
-        // Compoõe as imagens, ajustando as posições
+        // Compoõe as imagens, ajustando as posições.
         const finalImage = await resizedImage.composite([
             { input: topLeft, left: 0, top: 0 },
             { input: bottomRight, left: TARGET_SIZE.width - 400, top: TARGET_SIZE.height - 70 },

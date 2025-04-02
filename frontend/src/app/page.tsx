@@ -38,6 +38,27 @@ export default function Home() {
         }
     }, [openDialog]);
 
+    const downloadImage = async () => {
+        if (!imageUrl) return;
+
+        try {
+            const response = await fetch(imageUrl);
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = blobUrl;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Libera o objeto Blob da memória
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            console.error("Erro ao baixar a imagem:", error);
+        }
+    };
 
     const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Enter" && imageUrl) {
@@ -55,8 +76,8 @@ export default function Home() {
 
         const MAX_FILE_SIZE = 4.5 * 1024 * 1024; // 4.5MB
 
-        const maxWidth = mode === 'content' ? 2400 : 2400;
-        const maxHeight = mode === 'content' ? 2700 : 1500;
+        const maxWidth = mode === 'content' ? 1800 : 2400;
+        const maxHeight = mode === 'content' ? 2400 : 1500;
 
         let processedFile = file; // Inicialmente, o arquivo original
 
@@ -121,13 +142,14 @@ export default function Home() {
             </div>
 
             <AlertDialog open={openDialog} onOpenChange={setOpenDialog}>
-                <AlertDialogContent>
+                <AlertDialogContent className={'flex flex-col items-stretch justify-center w-full'}>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Imagem processada</AlertDialogTitle>
                     </AlertDialogHeader>
                     {imageUrl && (
-                        <Image src={imageUrl} alt="Imagem processada" width={800} height={500}
-                               className="rounded-md shadow-md"/>
+                        <Image src={imageUrl} alt="Imagem processada" width={mode === 'products' ? 300 : 600}
+                               height={mode === 'products' ? 400 : 900}
+                               className="rounded-md shadow-md m-auto"/>
                     )}
                     <AlertDialogFooter>
                         <AlertDialogCancel>Fechar</AlertDialogCancel>
@@ -142,9 +164,7 @@ export default function Home() {
                                     className="w-full mb-2 px-2 py-1 border rounded-md"
                                     placeholder="Digite o nome do arquivo"
                                 />
-                                <a href={imageUrl} download={fileName}>
-                                    <Button className="mr-2">Baixar Imagem</Button>
-                                </a>
+                                <Button className="mr-2" onClick={downloadImage}>Baixar Imagem</Button>
                             </>
                         )}
                     </AlertDialogFooter>

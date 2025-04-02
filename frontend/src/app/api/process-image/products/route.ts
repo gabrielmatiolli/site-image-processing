@@ -4,8 +4,8 @@ import sharp from 'sharp';
 import { createCanvas, loadImage } from 'canvas';
 import { put } from '@vercel/blob';
 
-const TARGET_SIZE = { width: 800, height: 900 };
-const LOGO_SIZE = { width: 566 }; // Largura fixa da logo
+const TARGET_SIZE = { width: 1200, height: 1600 };
+const LOGO_SIZE = { width: 900 }; // Largura fixa da logo
 const LOGO_PATH = path.join(process.cwd(), 'public/logo.png');
 const ALLOWED_FORMATS = ['image/jpeg', 'image/jpg', 'image/webp', 'image/png', 'image/svg+xml'];
 
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
         const buffer = Buffer.from(await file.arrayBuffer());
         const image = sharp(buffer);
 
-        // Redimensiona a imagem para 800x900
+        // Redimensiona a imagem para 1200x1600
         const resizedImageBuffer = await image.resize(TARGET_SIZE.width, TARGET_SIZE.height).toBuffer();
         const resizedImage = await loadImage(resizedImageBuffer);
 
