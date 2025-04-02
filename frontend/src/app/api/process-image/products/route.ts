@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import sharp from 'sharp';
-import fs from 'fs';
 import { createCanvas, loadImage } from 'canvas';
+import { put } from '@vercel/blob';
 
 const TARGET_SIZE = { width: 800, height: 900 };
 const LOGO_SIZE = { width: 566 }; // Largura fixa da logo
@@ -53,18 +53,13 @@ export async function POST(req: NextRequest) {
         // Converte a imagem para WebP com sharp
         const finalImageBuffer = await sharp(pngBuffer).toFormat('webp').toBuffer();
 
-        const processedImagePath = path.join(process.cwd(), 'public', 'processed-image.webp');
-        await fs.promises.writeFile(processedImagePath, finalImageBuffer);
+        // Envia a imagem para o Vercel Blob
+        const blob = await put(`processed-image-${Date.now()}.webp`, finalImageBuffer, {
+            access: 'public', // Torna o arquivo acessível publicamente
+            contentType: 'image/webp'
+        });
 
-        const imageUrl = `/processed-image.webp?${Date.now()}`;
-
-        return new NextResponse(
-            JSON.stringify({ imageUrl }),
-            {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
+        return NextResponse.json({ imageUrl: blob.url }, { status: 200 });
     } catch (error) {
         console.log(error);
         return NextResponse.json({ error: 'Erro ao processar a imagem' }, { status: 500 });
